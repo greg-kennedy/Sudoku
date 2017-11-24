@@ -17,7 +17,9 @@ my @clue;
 
 for my $i (1 .. 9) {
   $num[$i] = load("./img/$i.png");
+  $num[$i]->transparent($num[$i]->colorClosest(255,255,255));
   $clue[$i] = load("./img/clue$i.png");
+  $clue[$i]->transparent($num[$i]->colorClosest(255,255,255));
 }
 my $empty_board = load('./img/empty.png');
 
@@ -37,8 +39,8 @@ sub render {
       my $n = ($is_clue ? $clue[$digit] : $num[$digit]);
       my $alpha = ($is_clue ? 100 : 50);
       # calculate ranges
-      my $dstX = ($col + .5) * ($image->width / 9) - ($n->width / 2);
-      my $dstY = ($row + .5) * ($image->height / 9) - ($n->height / 2);
+      my $dstX = ($col + .5) * 72 - ($n->width / 2);
+      my $dstY = ($row + .5) * 72 - ($n->height / 2);
       # blit
       $image->copyMerge($n,$dstX,$dstY,0,0,$n->width,$n->height,$alpha);
     }
