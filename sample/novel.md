@@ -1406,7 +1406,7 @@ This left cell H2 with only one option: a 3.
 So she etched it there. 
 Alice realized she had reached a dead end. There were no more squares she could fill, and no more moves to try.
 
-Alice sighed, then erased her work, until the board once again matched [position C](#position-C).
+Alice sighed, then erased her work, until the board once again matched [position C](#position-c).
 
 Alice decided to try putting a 9 into cell B6.
 
@@ -2538,7 +2538,7 @@ Alice found that cell A8 could only contain a 8: all other digits were blocked s
 So she pencilled one there. 
 Alice realized she had reached a dead end. There were no more squares she could fill, and no more moves to try.
 
-Alice sighed, then erased her work, until the board once again matched [position E](#position-E).
+Alice sighed, then erased her work, until the board once again matched [position E](#position-e).
 
 Alice decided to try putting a 8 into cell C8.
 
@@ -2587,9 +2587,9 @@ This left cell H5 with only one option: a 8.
 She lightly sketched in a 8 at H5. 
 Alice realized she had reached a dead end. There were no more squares she could fill, and no more moves to try.
 
-Alice sighed, then erased her work, until the board once again matched [position E](#position-E).
+Alice sighed, then erased her work, until the board once again matched [position E](#position-e).
 
-Alice sighed, then erased her work, until the board once again matched [position D](#position-D).
+Alice sighed, then erased her work, until the board once again matched [position D](#position-d).
 
 Alice decided to try putting a 6 into cell B5.
 
@@ -2657,7 +2657,7 @@ This left cell E7 with only one option: a 8.
 So she etched it there. 
 Alice realized she had reached a dead end. There were no more squares she could fill, and no more moves to try.
 
-Alice sighed, then erased her work, until the board once again matched [position F](#position-F).
+Alice sighed, then erased her work, until the board once again matched [position F](#position-f).
 
 Alice decided to try putting a 5 into cell A4.
 
@@ -3421,7 +3421,7 @@ This left cell F6 with only one option: a 9.
 She quickly etched in a 9 in F6. 
 Alice realized she had reached a dead end. There were no more squares she could fill, and no more moves to try.
 
-Alice sighed, then erased her work, until the board once again matched [position I](#position-I).
+Alice sighed, then erased her work, until the board once again matched [position I](#position-i).
 
 Alice decided to try putting a 8 into cell A7.
 
@@ -3539,7 +3539,7 @@ This left cell B2 with only one option: a 6.
 So she added one there. 
 Alice realized she had reached a dead end. There were no more squares she could fill, and no more moves to try.
 
-Alice sighed, then erased her work, until the board once again matched [position K](#position-K).
+Alice sighed, then erased her work, until the board once again matched [position K](#position-k).
 
 Alice decided to try putting a 4 into cell A9.
 
@@ -5312,7 +5312,7 @@ This left cell D1 with only one option: a 3.
 She lightly placed a 3 at D1. 
 Alice realized she had reached a dead end. There were no more squares she could fill, and no more moves to try.
 
-Alice sighed, then erased her work, until the board once again matched [position N](#position-N).
+Alice sighed, then erased her work, until the board once again matched [position N](#position-n).
 
 Alice decided to try putting a 7 into cell A4.
 
@@ -5367,7 +5367,7 @@ This left cell D5 with only one option: a 5.
 So she pencilled it there. 
 Alice realized she had reached a dead end. There were no more squares she could fill, and no more moves to try.
 
-Alice sighed, then erased her work, until the board once again matched [position O](#position-O).
+Alice sighed, then erased her work, until the board once again matched [position O](#position-o).
 
 Alice decided to try putting a 6 into cell B5.
 
@@ -5483,7 +5483,7 @@ This left cell D1 with only one option: a 1.
 So she drew it there. 
 Alice realized she had reached a dead end. There were no more squares she could fill, and no more moves to try.
 
-Alice sighed, then erased her work, until the board once again matched [position P](#position-P).
+Alice sighed, then erased her work, until the board once again matched [position P](#position-p).
 
 Alice decided to try putting a 8 into cell B6.
 
@@ -5570,13 +5570,13 @@ This left cell E2 with only one option: a 3.
 She lightly sketched in a 3. 
 Alice realized she had reached a dead end. There were no more squares she could fill, and no more moves to try.
 
-Alice sighed, then erased her work, until the board once again matched [position P](#position-P).
+Alice sighed, then erased her work, until the board once again matched [position P](#position-p).
 
-Alice sighed, then erased her work, until the board once again matched [position O](#position-O).
+Alice sighed, then erased her work, until the board once again matched [position O](#position-o).
 
-Alice sighed, then erased her work, until the board once again matched [position N](#position-N).
+Alice sighed, then erased her work, until the board once again matched [position N](#position-n).
 
-Alice sighed, then erased her work, until the board once again matched [position M](#position-M).
+Alice sighed, then erased her work, until the board once again matched [position M](#position-m).
 
 Alice decided to try putting a 7 into cell A3.
 
@@ -6580,7 +6580,7 @@ She found that cell H5 could only contain a 5: all other digits were blocked som
 She lightly drew a 5. 
 Alice realized she had reached a dead end. There were no more squares she could fill, and no more moves to try.
 
-Alice sighed, then erased her work, until the board once again matched [position T](#position-T).
+Alice sighed, then erased her work, until the board once again matched [position T](#position-t).
 
 Alice decided to try putting a 4 into cell C1.
 
@@ -6718,9 +6718,9 @@ This left cell E4 with only one option: a 3.
 So she pencilled it there. 
 Alice realized she had reached a dead end. There were no more squares she could fill, and no more moves to try.
 
-Alice sighed, then erased her work, until the board once again matched [position T](#position-T).
+Alice sighed, then erased her work, until the board once again matched [position T](#position-t).
 
-Alice sighed, then erased her work, until the board once again matched [position S](#position-S).
+Alice sighed, then erased her work, until the board once again matched [position S](#position-s).
 
 Alice decided to try putting a 9 into cell B1.
 
@@ -6797,9 +6797,9 @@ This left cell H5 with only one option: a 5.
 She quickly placed a 5 at H5. 
 Alice realized she had reached a dead end. There were no more squares she could fill, and no more moves to try.
 
-Alice sighed, then erased her work, until the board once again matched [position S](#position-S).
+Alice sighed, then erased her work, until the board once again matched [position S](#position-s).
 
-Alice sighed, then erased her work, until the board once again matched [position R](#position-R).
+Alice sighed, then erased her work, until the board once again matched [position R](#position-r).
 
 Alice decided to try putting a 9 into cell A3.
 
@@ -6948,7 +6948,7 @@ Alice found that cell H3 could only contain a 6: all other digits were blocked s
 She put a 6. 
 Alice realized she had reached a dead end. There were no more squares she could fill, and no more moves to try.
 
-Alice sighed, then erased her work, until the board once again matched [position W](#position-W).
+Alice sighed, then erased her work, until the board once again matched [position W](#position-w).
 
 Alice decided to try putting a 8 into cell B1.
 
@@ -7045,7 +7045,7 @@ This left cell D8 with only one option: a 5.
 So she placed one there. 
 Alice realized she had reached a dead end. There were no more squares she could fill, and no more moves to try.
 
-Alice sighed, then erased her work, until the board once again matched [position X](#position-X).
+Alice sighed, then erased her work, until the board once again matched [position X](#position-x).
 
 Alice decided to try putting a 4 into cell C1.
 
@@ -7117,11 +7117,11 @@ Alice found that cell C5 could only contain a 7: all other digits were blocked s
 So she put it there. 
 Alice realized she had reached a dead end. There were no more squares she could fill, and no more moves to try.
 
-Alice sighed, then erased her work, until the board once again matched [position X](#position-X).
+Alice sighed, then erased her work, until the board once again matched [position X](#position-x).
 
-Alice sighed, then erased her work, until the board once again matched [position W](#position-W).
+Alice sighed, then erased her work, until the board once again matched [position W](#position-w).
 
-Alice sighed, then erased her work, until the board once again matched [position V](#position-V).
+Alice sighed, then erased her work, until the board once again matched [position V](#position-v).
 
 Alice decided to try putting a 2 into cell B9.
 
@@ -7199,7 +7199,7 @@ This left cell D8 with only one option: a 9.
 So she etched it there. 
 Alice realized she had reached a dead end. There were no more squares she could fill, and no more moves to try.
 
-Alice sighed, then erased her work, until the board once again matched [position Y](#position-Y).
+Alice sighed, then erased her work, until the board once again matched [position Y](#position-y).
 
 Alice decided to try putting a 8 into cell B1.
 
@@ -7287,7 +7287,7 @@ This left cell G1 with only one option: a 1.
 So she placed it there. 
 Alice realized she had reached a dead end. There were no more squares she could fill, and no more moves to try.
 
-Alice sighed, then erased her work, until the board once again matched [position Z](#position-Z).
+Alice sighed, then erased her work, until the board once again matched [position Z](#position-z).
 
 Alice decided to try putting a 4 into cell C1.
 
@@ -7344,13 +7344,13 @@ Alice found that cell G3 could only contain a 3: all other digits were blocked s
 So she put one there. 
 Alice realized she had reached a dead end. There were no more squares she could fill, and no more moves to try.
 
-Alice sighed, then erased her work, until the board once again matched [position Z](#position-Z).
+Alice sighed, then erased her work, until the board once again matched [position Z](#position-z).
 
-Alice sighed, then erased her work, until the board once again matched [position Y](#position-Y).
+Alice sighed, then erased her work, until the board once again matched [position Y](#position-y).
 
-Alice sighed, then erased her work, until the board once again matched [position V](#position-V).
+Alice sighed, then erased her work, until the board once again matched [position V](#position-v).
 
-Alice sighed, then erased her work, until the board once again matched [position U](#position-U).
+Alice sighed, then erased her work, until the board once again matched [position U](#position-u).
 
 Alice decided to try putting a 7 into cell A6.
 
@@ -7428,11 +7428,11 @@ This left cell H3 with only one option: a 4.
 So she put it there. 
 Alice realized she had reached a dead end. There were no more squares she could fill, and no more moves to try.
 
-Alice sighed, then erased her work, until the board once again matched [position U](#position-U).
+Alice sighed, then erased her work, until the board once again matched [position U](#position-u).
 
-Alice sighed, then erased her work, until the board once again matched [position R](#position-R).
+Alice sighed, then erased her work, until the board once again matched [position R](#position-r).
 
-Alice sighed, then erased her work, until the board once again matched [position Q](#position-Q).
+Alice sighed, then erased her work, until the board once again matched [position Q](#position-q).
 
 Alice decided to try putting a 9 into cell A2.
 

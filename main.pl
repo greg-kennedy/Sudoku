@@ -358,7 +358,7 @@ sub solve {
 
       # No diggity
       $backtracks ++;
-      print FP "Alice sighed, then erased her work, until the board once again matched [position $bt_position](#position-$bt_position).\n";
+      print FP "Alice sighed, then erased her work, until the board once again matched [position $bt_position](#position-" . lc($bt_position) . ").\n";
     }
 
     # failure on all counts
