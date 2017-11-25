@@ -529,7 +529,7 @@ for (my $i = 0; $i < scalar @puzzles; $i ++) {
 ### Ending
 print FP "## Conclusion";
 print FP "*" . scalar(localtime($timestamp)) . "*\n";
-print FP "Alice closed the puzzle book. Her coffee had grown cold, and she had a lot of things to accomplish today.";
+print FP "Alice closed the puzzle book. Her coffee had grown cold, and she had a lot of things to accomplish today.\n";
 print FP "She was pretty sure that Bob was having an affair.";
 
 close FP;

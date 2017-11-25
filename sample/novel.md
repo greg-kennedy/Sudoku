@@ -7658,4 +7658,5 @@ Alice checked the time again, wondering if there was time for another puzzle.
 *Mon Aug 28 08:49:53 2017*
 
 Alice closed the puzzle book. Her coffee had grown cold, and she had a lot of things to accomplish today.
+
 She was pretty sure that Bob was having an affair.
