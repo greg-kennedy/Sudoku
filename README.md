@@ -21,4 +21,4 @@ There are other items in this repository that either helped in development, or w
 * render.pl - Renders a Sudoku Puzzle to a .png image.  Clues are given in a solid computer typeface, while user moves are styled as a light pen/pencil mark.
 
 ## License
-Released under Perl Artistic 2.0, see LICENSE for full details.
+Released under Perl Artistic 2.0, see [LICENSE.md](./LICENSE.md) for full details.
