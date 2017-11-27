@@ -1,12 +1,18 @@
 all:	novel
 
 clean:
-	rm -rf out
+	rm -rf out nytprof.out
 
 novel:	clean
 	mkdir out
 	./main.pl
 	cat out/novel.md | tr -d '[:punct:][:digit:]' | wc -w
+
+profile:
+	perl -d:NYTProf solve.pl 8..........36......7..9.2...5...7.......457.....1...3...1....68..85...1..9....4..
+	nytprofhtml
+	#rm -rf /home/grkenn/public_html/nytprof
+	#mv nytprof /home/grkenn/public_html
 
 test:
 #	./solve.pl 000079065000003002005060093340050106000000000608020059950010600700600000820390000
