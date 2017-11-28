@@ -182,7 +182,7 @@ sub clone
   for (my $row = 0; $row < 9; $row ++) {
     for (my $col = 0; $col < 9; $col ++) {
       $clone->{puzzle}[$row][$col] = $self->{puzzle}[$row][$col];
-      $clone->{candidates}[$row][$col] = \@{$self->{candidates}[$row][$col]};
+      $clone->{candidates}[$row][$col] = defined $self->{candidates}[$row][$col] ? [ @{$self->{candidates}[$row][$col]} ] : undef;
     }
   }
 
