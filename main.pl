@@ -120,7 +120,7 @@ sub forced {
 sub p {
   return sprintf('%c%c', ord('A') + $_[0], ord('1') + $_[1]);
 }
-sub solve {
+sub rec_solve {
   my $puzzle = shift;
 
   print FP "Alice " . pick('began ','resumed ','continued ','started ') . "looking for squares to fill on her puzzle. ";
@@ -348,12 +348,12 @@ sub solve {
 
       my $test_puzzle = $puzzle->clone;
       $test_puzzle->set_cell(@$move);
-      my $result = solve($test_puzzle);
+      my $result = rec_solve($test_puzzle);
 
       # Well, it worked...
-      if ($result) {
-        $puzzle->assign_from($test_puzzle);
-        return 1;
+      if ($result->is_solved)
+      {
+        return $result;
       }
 
       # No diggity
@@ -362,19 +362,24 @@ sub solve {
     }
 
     # failure on all counts
-    return 0;
+    $puzzle->{is_solvable} = 0;
   }
 
   if ($puzzle->is_solved)
   {
     print FP "Alice stopped. The puzzle was completely filled.\n";
-    return 1;
   } else {
     print FP "Alice realized she had reached a dead end. There were no more squares she could fill, and no more moves to try.\n";
-    # did not arrive at a solution
-    return 0;
   }
+  return $puzzle;
 }
+
+sub solve
+{
+  my $puzzle = shift;
+  return rec_solve($puzzle->clone);
+}
+
 
 ##############################################################################
 ### DREAM
@@ -479,7 +484,7 @@ for (my $i = 0; $i < scalar @puzzles; $i ++) {
   $forks = 0;
   $backtracks = 0; 
   # go solve the puzzle 
-  solve($puzzle);
+  my $result = solve($puzzle);
 
   # A puzzle takes ~5 mins to solve.
   $timestamp += (450 + rand(300));
@@ -490,8 +495,8 @@ for (my $i = 0; $i < scalar @puzzles; $i ++) {
 
   print FP "### Solution\n";
   # print the result
-  $p_str = $puzzle->get_string;
-  $fname = render($puzzle);
+  $p_str = $result->get_string;
+  $fname = render($result);
   print FP "![$p_str]($fname \"$p_str\")\n";
 
   # Alice thinks about the puzzle she just solved.

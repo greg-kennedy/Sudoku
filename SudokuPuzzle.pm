@@ -50,10 +50,6 @@ If puzzle creation succeeds, a blessed reference is returned.
 
 Duplicates a SudokuPuzzle object (and returns the resulting new object).
 
-=item C<assign_from>
-
-Copies the provided SudokuPuzzle object's contents, overwriting this one.
-
 =item C<is_solved>
 
 Returns 1 if the puzzle is completely solved, 0 otherwise.
@@ -132,17 +128,6 @@ L<https://en.wikipedia.org/wiki/Sudoku>
 
 =cut
 
-# Constant: box designation
-my @box = ( [0,0,0,1,1,1,2,2,2],
-            [0,0,0,1,1,1,2,2,2],
-            [0,0,0,1,1,1,2,2,2],
-            [3,3,3,4,4,4,5,5,5],
-            [3,3,3,4,4,4,5,5,5],
-            [3,3,3,4,4,4,5,5,5],
-            [6,6,6,7,7,7,8,8,8],
-            [6,6,6,7,7,7,8,8,8],
-            [6,6,6,7,7,7,8,8,8] );
-
 # Create new SudokuPuzzle object
 sub new
 {
@@ -151,8 +136,13 @@ sub new
   # Create empty object
   my $self = {
     puzzle => [ map { [ (undef) x 9 ] } ( 1 .. 9 ) ],
+
     clues => [ map { [ (0) x 9 ] } ( 1 .. 9 ) ],
-    candidates => [ map { [ map { [ ( 1 .. 9 ) ] } ( 1 .. 9 ) ] } ( 1 .. 9 ) ],
+
+    candidates => [ map { [ map { [ 1 .. 9 ] } ( 1 .. 9 ) ] } ( 1 .. 9 ) ],
+#    digit_rows => [ map { [ 1 .. 9 ] } ( 1 .. 9 ) ],
+#    digit_columns => [ map { [ 1 .. 9 ] } ( 1 .. 9 ) ],
+#    digit_boxes => [ map { [ 1 .. 9 ] } ( 1 .. 9 ) ],
 
     remaining => 81,
     is_solvable => 1,
@@ -188,44 +178,27 @@ sub clone
   my $self = shift;
 
   # Make new empty object
-  my $clone = (ref $self)->new;
+  my $clone;
+
   # Copy details from original
-  $clone->assign_from($self);
-
-  # Return the clone
-  return $clone;
-}
-
-# Copy guts from other into self
-sub assign_from
-{
-  my $self = shift;
-  my $other = shift;
-
-  $self->{remaining} = $other->{remaining};
-  $self->{is_solvable} = $other->{is_solvable};
+  $clone->{remaining} = $self->{remaining};
+  $clone->{is_solvable} = $self->{is_solvable};
 
   # copy all values
   for (my $row = 0; $row < 9; $row ++) {
     for (my $col = 0; $col < 9; $col ++) {
-      $self->{puzzle}[$row][$col] = $other->{puzzle}[$row][$col];
-      $self->{clues}[$row][$col] = $other->{clues}[$row][$col];
-      $self->{candidates}[$row][$col] = \@{$other->{candidates}[$row][$col]};
+      $clone->{puzzle}[$row][$col] = $self->{puzzle}[$row][$col];
+      $clone->{clues}[$row][$col] = $self->{clues}[$row][$col];
+      $clone->{candidates}[$row][$col] = \@{$self->{candidates}[$row][$col]};
     }
   }
+
+  # Return the clone
+  return bless $clone, ref $self;
 }
 
-# Helper function: returns true if cell2 is a "peer" of cell1
-#  Cells are not a peer of themselves
-sub _is_peer
-{
-  my ($row, $col, $p_row, $p_col) = @_;
-
-  return 0 if ($row == $p_row && $col == $p_col);
-
-  return ($row == $p_row || $col == $p_col || $box[$row][$col] == $box[$p_row][$p_col]);
-}
-
+# Constant: box designation
+my @db3 = map { int($_ / 3) } (0 .. 8);
 sub set_cell
 {
   my $self = shift;
@@ -237,15 +210,13 @@ sub set_cell
   my $is_clue = shift || 0;
 
   # Retrieve cell info
-  my ($cur_digit, $cur_is_clue, $cur_list) = $self->get_cell($row, $col);
-
-  if (defined $cur_digit)
+  if (defined $self->{puzzle}[$row][$col])
   {
-    confess "Can't place $digit at $row, $col: is already marked $cur_digit (" . ($cur_is_clue == 1 ? 'Is Clue' : 'Player entry') . ")";
+    confess "Can't place $digit at $row, $col: is already marked " . ($self->{puzzle}[$row][$col]) . " (" . ($self->{clues}[$row][$col] == 1 ? 'Is Clue' : 'Player entry') . ")";
   }
 
   # Check if move is in available list
-  if (scalar(grep { $_ eq $digit } @$cur_list) == 0)
+  if (scalar(grep { $_ eq $digit } @{$self->{candidates}[$row][$col]}) == 0)
   {
     confess "Can't place $digit at $row, $col: digit is not in candidates list";
   }
@@ -262,7 +233,11 @@ sub set_cell
   for (my $i = 0; $i < 9; $i ++) {
     for (my $j = 0; $j < 9; $j ++) {
       # non-peer cells are unaffected by adding a digit
-      next if (! _is_peer($row, $col, $i, $j));
+      next if ($row == $i && $col == $j);
+
+      # Helper function: returns true if cell2 is a "peer" of cell1
+      #  Cells are not a peer of themselves
+      next unless ($row == $i || $col == $j || ($db3[$row] == $db3[$i] && $db3[$col] == $db3[$j]));
 
       # don't touch if value already filled
       next if (defined $self->{puzzle}[$i][$j]);
@@ -344,10 +319,7 @@ sub is_solved
 
 sub get_cell
 {
-  my $self = shift;
-
-  my $row = shift;
-  my $col = shift;
+  my ($self, $row, $col) = @_;
 
   # Retrieve cell info
   return ($self->{puzzle}[$row][$col], $self->{clues}[$row][$col], $self->{candidates}[$row][$col]);

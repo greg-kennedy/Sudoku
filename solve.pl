@@ -18,7 +18,7 @@ sub p {
 # If 0, the puzzle state is left where no more obvious moves
 #  can be made.
 # Does NOT check for "multiple solutions"
-sub solve
+sub rec_solve
 {
   my $puzzle = shift;
 
@@ -141,24 +141,32 @@ sub solve
       # Try each solution through recursive solver.
       if ($debug) { say "FORK: trying $move->[2] for " . p($move->[0], $move->[1]) . "." }
 
+      # Duplicate the position
       my $test_puzzle = $puzzle->clone;
+      # Make the move
       $test_puzzle->set_cell(@$move);
-      my $result = solve($test_puzzle);
+      # Try a solve
+      my $result = rec_solve($test_puzzle);
 
       # Well, it worked...
-      if ($result)
+      if ($result->is_solved)
       {
-        $puzzle->assign_from($test_puzzle);
-        return 1;
+        return $result;
       }
     }
 
     # failure on all counts
-    return 0;
+    $puzzle->{is_solvable} = 0;
   }
 
   # did not arrive at a solution
-  return $puzzle->is_solved;
+  return $puzzle;
+}
+
+sub solve
+{
+  my $puzzle = shift;
+  return rec_solve($puzzle->clone);
 }
 
 ## USAGE
@@ -175,9 +183,9 @@ $puzzle->print;
 my $result = solve($puzzle);
 
 # Print result and exit.
-if ($result) {
+if ($result->is_solved) {
   say "Solution:";
 } else {
   say "Puzzle appears unsolvable.  Progress:";
 }
-$puzzle->print;
+$result->print;
