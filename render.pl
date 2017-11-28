@@ -13,13 +13,10 @@ sub load {
 
 # Load the images
 my @num;
-my @clue;
 
 for my $i (1 .. 9) {
-  $num[$i] = load("./img/$i.png");
+  $num[$i] = load("./img/clue$i.png");
   $num[$i]->transparent($num[$i]->colorClosest(255,255,255));
-  $clue[$i] = load("./img/clue$i.png");
-  $clue[$i]->transparent($num[$i]->colorClosest(255,255,255));
 }
 my $empty_board = load('./img/empty.png');
 
@@ -32,17 +29,16 @@ sub render {
 
   for (my $row = 0; $row < 9; $row ++) {
     for (my $col = 0; $col < 9; $col ++) {
-      my ($digit, $is_clue, $candidates) = $puzzle->get_cell($row, $col);
+      my $digit = $puzzle->[$row][$col];
       next if (!defined $digit);
 
       # blit proper number to this location
-      my $n = ($is_clue ? $clue[$digit] : $num[$digit]);
-      my $alpha = ($is_clue ? 100 : 50);
+      my $n = $num[$digit];
       # calculate ranges
       my $dstX = ($col + .5) * 72 - ($n->width / 2);
       my $dstY = ($row + .5) * 72 - ($n->height / 2);
       # blit
-      $image->copyMerge($n,$dstX,$dstY,0,0,$n->width,$n->height,$alpha);
+      $image->copy($n,$dstX,$dstY,0,0,$n->width,$n->height);
     }
   }
 
@@ -60,5 +56,5 @@ $fname =~ s/\./0/g;
 $fname .= '.png';
 open (FP, '>', $fname) or die "Couldn't open $fname for writing: $!";
 binmode FP;
-print FP render($puzzle);
+print FP render($puzzle->get);
 close FP;

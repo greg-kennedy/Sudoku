@@ -76,10 +76,9 @@ This function accepts two parameters (row and column).
 
 It returns a list with details of the cell, in the following format:
 
-( CellValue, IsClue, [ Candidates ] )
+( CellValue, [ Candidates ] )
 
 where CellValue is the digit currently in the cell (1-9 or undef),
-IsClue is 1 for "yes", 0 for "no" (user entered or empty),
 and Candidates is a list of digits that can still be placed here.
 
 Candidates is undef if CellValue is set.
@@ -89,12 +88,11 @@ If Candidates is an empty list, is_solvable should return 0.
 =item C<set>
 
 Given a reference to a 2d, 9x9 array containing digits 1-9 or undef,
-set up the current puzzle state.  All values are entered as Clues.
+set up the current puzzle state.
 
 =item C<set_string>
 
-Given a puzzle string, set up the current puzzle state.  All values are
-entered as Clues.
+Given a puzzle string, set up the current puzzle state.
 
 =item C<set_cell>
 
@@ -103,8 +101,6 @@ Makes an update to the puzzle state.  This function takes several parameters.
 The first parameter is a numeric value, 1-9, which is to be placed in a box.
 
 The second parameter is the row, and the third is the column.
-
-An optional fourth parameter is the IsClue setting, which defaults to 0.
 
 Returns 1 if the entry was accepted, or 0 if it was not a legal move.
 
@@ -136,8 +132,6 @@ sub new
   # Create empty object
   my $self = {
     puzzle => [ map { [ (undef) x 9 ] } ( 1 .. 9 ) ],
-
-    clues => [ map { [ (0) x 9 ] } ( 1 .. 9 ) ],
 
     candidates => [ map { [ map { [ 1 .. 9 ] } ( 1 .. 9 ) ] } ( 1 .. 9 ) ],
 #    digit_rows => [ map { [ 1 .. 9 ] } ( 1 .. 9 ) ],
@@ -188,7 +182,6 @@ sub clone
   for (my $row = 0; $row < 9; $row ++) {
     for (my $col = 0; $col < 9; $col ++) {
       $clone->{puzzle}[$row][$col] = $self->{puzzle}[$row][$col];
-      $clone->{clues}[$row][$col] = $self->{clues}[$row][$col];
       $clone->{candidates}[$row][$col] = \@{$self->{candidates}[$row][$col]};
     }
   }
@@ -207,12 +200,10 @@ sub set_cell
   my $col = shift;
   my $digit = shift;
 
-  my $is_clue = shift || 0;
-
   # Retrieve cell info
   if (defined $self->{puzzle}[$row][$col])
   {
-    confess "Can't place $digit at $row, $col: is already marked " . ($self->{puzzle}[$row][$col]) . " (" . ($self->{clues}[$row][$col] == 1 ? 'Is Clue' : 'Player entry') . ")";
+    confess "Can't place $digit at $row, $col: is already marked " . ($self->{puzzle}[$row][$col]);
   }
 
   # Check if move is in available list
@@ -221,9 +212,8 @@ sub set_cell
     confess "Can't place $digit at $row, $col: digit is not in candidates list";
   }
 
-  # Place digit, update clue status, delete candidates list
+  # Place digit, delete candidates list
   $self->{puzzle}[$row][$col] = $digit;
-  $self->{clues}[$row][$col] = $is_clue;
   $self->{candidates}[$row][$col] = undef;
 
   $self->{remaining} --;
@@ -302,7 +292,7 @@ sub set
       my $digit = $puzzle_ref->[$row][$col];
       next unless defined $digit;
       #confess "set(): puzzle contains illegal moves" unless $self->set_cell($row, $col, $puzzle_ref->[$row][$col]);
-      $self->set_cell($row, $col, $digit, 1);
+      $self->set_cell($row, $col, $digit);
     }
   }
 }
@@ -322,7 +312,7 @@ sub get_cell
   my ($self, $row, $col) = @_;
 
   # Retrieve cell info
-  return ($self->{puzzle}[$row][$col], $self->{clues}[$row][$col], $self->{candidates}[$row][$col]);
+  return ($self->{puzzle}[$row][$col], $self->{candidates}[$row][$col]);
 }
 
 sub get_string

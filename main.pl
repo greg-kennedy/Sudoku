@@ -56,15 +56,21 @@ my $img_board = GD::Image->newFromPng('./img/empty.png',1) or die "Failed to loa
 
 # Render a puzzle, save to disk, return filename
 sub render {
-  my $puzzle = shift;
+  my $clues = shift;
+  my $puzzle_ref = shift;
+
+  my $puzzle = $puzzle_ref->get;
 
   # duplicate the empty board
   my $image = $img_board->clone;
 
   for (my $row = 0; $row < 9; $row ++) {
     for (my $col = 0; $col < 9; $col ++) {
-      my ($digit, $is_clue, $candidates) = $puzzle->get_cell($row, $col);
+      my $digit = $puzzle->[$row][$col];
       next if (!defined $digit);
+
+      # Get clue status by checking the "original" (unfilled) board
+      my $is_clue = (defined $clues->[$row][$col]);
 
       # blit proper number to this location
       my $n = ($is_clue ? $img_clue[$digit] : $img_num[$digit]);
@@ -77,12 +83,17 @@ sub render {
     }
   }
 
-  my $fname = $puzzle->get_string;
+  my $fname = $puzzle_ref->get_string;
   $fname =~ s/\./0/g;
   $fname = $fname . '.png';
   open (PNG, '>', 'out/' . $fname);
   binmode(PNG);
-  print PNG $image->png(9);
+  {
+    # undo my silly hack
+    local $\;
+    # dump the image
+    print PNG $image->png(9);
+  }
   close PNG;
 
   return $fname;
@@ -121,6 +132,7 @@ sub p {
   return sprintf('%c%c', ord('A') + $_[0], ord('1') + $_[1]);
 }
 sub rec_solve {
+  my $clues = shift;
   my $puzzle = shift;
 
   print FP "Alice " . pick('began ','resumed ','continued ','started ') . "looking for squares to fill on her puzzle. ";
@@ -135,7 +147,7 @@ sub rec_solve {
       # checkpoint
       print FP "Her puzzle now looked like this.\n";
       my $p_str = $puzzle->get_string;
-      my $fname = render($puzzle);
+      my $fname = render($clues,$puzzle);
       print FP "![$p_str]($fname \"$p_str\")\n";
 
       # do a couple things from the list
@@ -213,7 +225,7 @@ sub rec_solve {
     for (my $row = 0; $row < 9; $row ++) {
       for (my $col = 0; $col < 9; $col ++) {
         # Get cell details, and advance to next cell if this one is already filled.
-        my ($digit, $is_clue, $candidates) = $puzzle->get_cell($row, $col);
+        my ($digit, $candidates) = $puzzle->get_cell($row, $col);
         next if (defined $digit);
 
         # A singular candidate is a forced move and can be filled ASAP.
@@ -243,7 +255,7 @@ sub rec_solve {
 
         # search for digit on the row
         for (my $col = 0; $col < 9; $col ++) {
-          my ($o_digit, $o_is_clue, $o_candidates) = $puzzle->get_cell($row, $col);
+          my ($o_digit, $o_candidates) = $puzzle->get_cell($row, $col);
 
           # Digit already exists on this row
           next ROW if (defined $o_digit && $o_digit == $digit);
@@ -270,7 +282,7 @@ sub rec_solve {
 
         # search for digit on the column
         for (my $row = 0; $row < 9; $row ++) {
-          my ($o_digit, $o_is_clue, $o_candidates) = $puzzle->get_cell($row, $col);
+          my ($o_digit, $o_candidates) = $puzzle->get_cell($row, $col);
 
           # Digit already exists on this column
           next COL if (defined $o_digit && $o_digit == $digit);
@@ -298,7 +310,7 @@ sub rec_solve {
         # search for digit in the box
         for (my $row = 3 * int($box / 3); $row < 3 * (1 + int($box / 3)); $row ++) {
           for (my $col = 3 * ($box % 3); $col < 3 * (1 + ($box % 3)); $col ++) {
-            my ($o_digit, $o_is_clue, $o_candidates) = $puzzle->get_cell($row, $col);
+            my ($o_digit, $o_candidates) = $puzzle->get_cell($row, $col);
 
             # Digit already exists on this column
             next BOX if (defined $o_digit && $o_digit == $digit);
@@ -329,7 +341,7 @@ sub rec_solve {
 
     print FP "### Position $bt_position\n";
     my $p_str = $puzzle->get_string;
-    my $fname = render($puzzle);
+    my $fname = render($clues,$puzzle);
     print FP "![$p_str]($fname \"$p_str\")\n";
 
     print FP "Alice considered her next move. She compiled the shortest list of options. From here, she could ";
@@ -348,7 +360,7 @@ sub rec_solve {
 
       my $test_puzzle = $puzzle->clone;
       $test_puzzle->set_cell(@$move);
-      my $result = rec_solve($test_puzzle);
+      my $result = rec_solve($clues, $test_puzzle);
 
       # Well, it worked...
       if ($result->is_solved)
@@ -377,7 +389,7 @@ sub rec_solve {
 sub solve
 {
   my $puzzle = shift;
-  return rec_solve($puzzle->clone);
+  return rec_solve($puzzle->get,$puzzle->clone);
 }
 
 
@@ -477,7 +489,7 @@ for (my $i = 0; $i < scalar @puzzles; $i ++) {
 
   # Write image of initial puzzle to disk
   my $p_str = $puzzle->get_string;
-  my $fname = render($puzzle);
+  my $fname = render($puzzle->get, $puzzle);
   print FP "![$p_str]($fname \"$p_str\")\n";
 
   # reset difficulty settings
@@ -496,7 +508,7 @@ for (my $i = 0; $i < scalar @puzzles; $i ++) {
   print FP "### Solution\n";
   # print the result
   $p_str = $result->get_string;
-  $fname = render($result);
+  $fname = render($puzzle->get,$result);
   print FP "![$p_str]($fname \"$p_str\")\n";
 
   # Alice thinks about the puzzle she just solved.

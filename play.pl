@@ -29,10 +29,10 @@ while ($puzzle->is_solvable && ! $puzzle->is_solved)
   $col = ord($col) - ord('1');
 
   # retrieve data for this cell
-  my ($cur_value, $is_clue, $candidates) = $puzzle->get_cell($row, $col);
+  my ($cur_value, $candidates) = $puzzle->get_cell($row, $col);
   if (defined $cur_value)
   {
-    say "That cell is already filled with '$cur_value' by " . ($is_clue ? 'Clue' : 'Player');
+    say "That cell is already filled with '$cur_value'.";
     redo;
   }
 
