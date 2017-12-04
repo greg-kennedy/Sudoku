@@ -179,7 +179,7 @@ my $puzzle = new SudokuPuzzle($ARGV[0]);
 
 # Print parsed puzzle
 say "Input:";
-$puzzle->print;
+$puzzle->pp;
 
 # Attempt to solve puzzle.
 my $start = time;
@@ -192,6 +192,6 @@ if ($result->is_solved) {
 } else {
   say "Puzzle appears unsolvable.  Progress:";
 }
-$result->print;
+$result->pp;
 
 say "Elapsed time: " . ($end - $start) . " seconds.";
