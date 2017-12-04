@@ -37,9 +37,9 @@ my $puzzle_position = 'A';
 ##############################################################################
 ### TEXT FUNCTIONS
 # chooses a random sentence from an array
-sub pick { return $_[int(rand(@_))]; }
+sub pick { return $_[int(rand(@_))] }
 # event occurs with probability 0 to 1
-sub chance { return rand(1) < $_[0]; }
+sub chance { return rand(1) < $_[0] }
 
 ##############################################################################
 ### PUZZLE RENDER

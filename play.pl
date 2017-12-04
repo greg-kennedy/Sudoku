@@ -10,7 +10,7 @@ my $puzzle = new SudokuPuzzle($ARGV[0]);
 
 while ($puzzle->is_solvable && ! $puzzle->is_solved)
 {
-  $puzzle->print;
+  $puzzle->pp;
 
   # row
   print "Row? "; my $row = <STDIN>;
