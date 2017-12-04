@@ -333,7 +333,7 @@ sub get
   return $_[0]->{puzzle};
 }
 
-sub print
+sub pp
 {
   my $self = shift;
 

@@ -3,6 +3,8 @@ use strict;
 use warnings;
 use v5.010;
 
+use Time::HiRes qw(time);
+
 use SudokuPuzzle;
 
 use constant DEBUG => 0;
@@ -180,7 +182,9 @@ say "Input:";
 $puzzle->print;
 
 # Attempt to solve puzzle.
+my $start = time;
 my $result = solve($puzzle);
+my $end = time;
 
 # Print result and exit.
 if ($result->is_solved) {
@@ -189,3 +193,5 @@ if ($result->is_solved) {
   say "Puzzle appears unsolvable.  Progress:";
 }
 $result->print;
+
+say "Elapsed time: " . ($end - $start) . " seconds.";
