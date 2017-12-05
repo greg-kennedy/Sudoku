@@ -15,7 +15,7 @@ SudokuPuzzle - A class encapsulating a Sudoku puzzle, with additional metadata.
 
     use SudokuPuzzle;
     my $puzzle = new SudokuPuzzle($puzzle_string);
-    $puzzle->print;
+    $puzzle->pp;
 
 =head1 DESCRIPTION
 
@@ -72,18 +72,32 @@ Returns a flattened version of the array in string form.
 
 =item C<get_cell>
 
-This function accepts two parameters (row and column).
+This function accepts two parameters (row and column).  It returns the digit
+currently in the cell (1-9 or undef).
 
-It returns a list with details of the cell, in the following format:
+For performance, you may want to just retrieve the whole puzzle with get().
 
-( CellValue, [ Candidates ] )
+=item C<get_candidates>
 
-where CellValue is the digit currently in the cell (1-9 or undef),
-and Candidates is a list of digits that can still be placed here.
+This function accepts two parameters (row and column). It returns a reference
+to a list of "candidates" (digits that can still be placed here.)
 
-Candidates is undef if CellValue is set.
+Candidates is undef if there is already a digit placed here.
 
 If Candidates is an empty list, is_solvable should return 0.
+
+=item C<get_row>
+=item C<get_column>
+=item C<get_box>
+
+This function accepts two parameters: row/column/box, and digit.
+
+It returns a reference to a list of "places" (locations within the
+row/column/box that can still hold the digit).
+
+The return is undef if there is already a digit placed here.
+
+If the return is an empty list, is_solvable should return 0.
 
 =item C<set>
 
@@ -104,7 +118,7 @@ The second parameter is the row, and the third is the column.
 
 Returns 1 if the entry was accepted, or 0 if it was not a legal move.
 
-=item C<print>
+=item C<pp>
 
 Pretty-prints the puzzle.  This is mainly a debug function.
 
@@ -131,12 +145,16 @@ sub new
 
   # Create empty object
   my $self = {
+    # the puzzle itself
     puzzle => [ map { [ (undef) x 9 ] } ( 1 .. 9 ) ],
 
+    # for each cell, the remaining possible digits that could fill it
     candidates => [ map { [ map { [ 1 .. 9 ] } ( 1 .. 9 ) ] } ( 1 .. 9 ) ],
-#    digit_rows => [ map { [ 1 .. 9 ] } ( 1 .. 9 ) ],
-#    digit_columns => [ map { [ 1 .. 9 ] } ( 1 .. 9 ) ],
-#    digit_boxes => [ map { [ 1 .. 9 ] } ( 1 .. 9 ) ],
+
+    # for each digit, the remaining possible cells that could house it
+    row => [ map { [ map { [ 0 .. 8 ] } ( 0 .. 8 ) ] } ( 1 .. 9 ) ],
+    col => [ map { [ map { [ 0 .. 8 ] } ( 0 .. 8 ) ] } ( 1 .. 9 ) ],
+    box => [ map { [ map { [ 0 .. 8 ] } ( 0 .. 8 ) ] } ( 1 .. 9 ) ],
 
     remaining => 81,
     is_solvable => 1,
@@ -179,10 +197,15 @@ sub clone
   $clone->{is_solvable} = $self->{is_solvable};
 
   # copy all values
-  for (my $row = 0; $row < 9; $row ++) {
-    for (my $col = 0; $col < 9; $col ++) {
-      $clone->{puzzle}[$row][$col] = $self->{puzzle}[$row][$col];
-      $clone->{candidates}[$row][$col] = defined $self->{candidates}[$row][$col] ? [ @{$self->{candidates}[$row][$col]} ] : undef;
+  for (my $i = 0; $i < 9; $i ++) {
+    for (my $j = 0; $j < 9; $j ++) {
+      $clone->{puzzle}[$i][$j] = $self->{puzzle}[$i][$j];
+
+      if (defined $self->{candidates}[$i][$j]) { $clone->{candidates}[$i][$j] = [ @{$self->{candidates}[$i][$j]} ] }
+
+      if (defined $self->{row}[$i][$j]) { $clone->{row}[$i][$j] = [ @{$self->{row}[$i][$j]} ] }
+      if (defined $self->{col}[$i][$j]) { $clone->{col}[$i][$j] = [ @{$self->{col}[$i][$j]} ] }
+      if (defined $self->{box}[$i][$j]) { $clone->{box}[$i][$j] = [ @{$self->{box}[$i][$j]} ] }
     }
   }
 
@@ -190,15 +213,36 @@ sub clone
   return bless $clone, ref $self;
 }
 
-# Constant: box designation
-my @db3 = map { int($_ / 3) } (0 .. 8);
+# Constant for fast conversion between box and the cells it contains
+
+# lookup for row,col to box
+my @_box;
+# lookup for row,col to cell ID within box
+my @_box_cell;
+# box,id to row
+my @_box_row;
+# box,id to col
+my @_box_col;
+
+# all the computations for the above
+#  the conversion is neatly symmetrical
+foreach my $i (0 .. 8) {
+  foreach my $j (0 .. 8) {
+    $_box[$i][$j] = 3 * int($i / 3) + int($j / 3);
+    $_box_cell[$i][$j] = 3 * ($i % 3) + $j % 3;
+
+    $_box_row[$i][$j] = 3 * int($i / 3) + int($j / 3);
+    $_box_col[$i][$j] = 3 * ($i % 3) + $j % 3;
+  }
+}
+
 sub set_cell
 {
-  my $self = shift;
+  my ($self, $row, $col, $digit) = @_;
 
-  my $row = shift;
-  my $col = shift;
-  my $digit = shift;
+  # box ID within a box
+  my $box = $_box[$row][$col];
+  my $box_cell = $_box_cell[$row][$col];
 
   # Retrieve cell info
   if (defined $self->{puzzle}[$row][$col])
@@ -212,34 +256,145 @@ sub set_cell
     confess "Can't place $digit at $row, $col: digit is not in candidates list";
   }
 
-  # Place digit, delete candidates list
+  # Place digit
   $self->{puzzle}[$row][$col] = $digit;
-  $self->{candidates}[$row][$col] = undef;
 
   $self->{remaining} --;
 
-  # Puzzle meta update: delete digit from candidates of all peers,
-  #  also update is_solvable
-  for (my $i = 0; $i < 9; $i ++) {
-    for (my $j = 0; $j < 9; $j ++) {
-      # non-peer cells are unaffected by adding a digit
-      next if ($row == $i && $col == $j);
+  # Candidate list cleanup
+  #  Placing a number removes all other candidates from this spot.
+  $self->{candidates}[$row][$col] = undef;
 
-      # Helper function: returns true if cell2 is a "peer" of cell1
-      #  Cells are not a peer of themselves
-      next unless ($row == $i || $col == $j || ($db3[$row] == $db3[$i] && $db3[$col] == $db3[$j]));
+  for (my $d = 0; $d < 9; $d ++)
+  {
+    if ($d == $digit - 1)
+    {
+      # Handling for other placements of this digit
+      for (my $i = 0; $i < 9; $i ++) {
+# ROW
+        if ($row == $i) {
+          # This digit was placed on this row, so remove its "columns" list
+          $self->{row}[$i][$d] = undef;
 
-      # don't touch if value already filled
-      next if (defined $self->{puzzle}[$i][$j]);
+          # Also, remove this digit from all other candidates on the row
+          for (my $j = 0; $j < 9; $j ++) {
+            if (defined $self->{candidates}[$i][$j]) {
+              my @new_candidates = grep { $_ != $digit } @{$self->{candidates}[$i][$j]};
+              if (scalar @new_candidates == 0) { $self->{is_solvable} = 0 }
+              $self->{candidates}[$i][$j] = \@new_candidates;
+            }
+          }
+        } else {
+          # On all other rows, the digit cannot be on this column.
+          for (my $j = 0; $j < 9; $j ++) {
+            if (defined $self->{row}[$j][$d]) {
+              my @new_cells = grep { $_ != $col } @{$self->{row}[$j][$d]};
+              #if (scalar @new_cells == 0) { $self->{is_solvable} = 0 }
+              $self->{row}[$j][$d] = \@new_cells;
+            }
 
-      # strip digit from candidates for target cell
-      my @new_candidates = grep { $_ != $digit } @{$self->{candidates}[$i][$j]};
+            # Also, iterate through box/cell that matches and prune that item.
+            my $box = $_box[$j][$col];
+            if (defined $self->{box}[$box][$d]) {
+              my $box_cell = $_box_cell[$j][$col];
+              my @new_cells = grep { $_ != $box_cell } @{$self->{box}[$box][$d]};
+              #if (scalar @new_cells == 0) { $self->{is_solvable} = 0 }
+              $self->{box}[$box][$d] = \@new_cells;
+            }
+          }
+        }
 
-      # empty list means puzzle is not solvable any more
-      if (scalar @new_candidates == 0) { $self->{is_solvable} = 0; }
+#COL
+        if ($col == $i) {
+          # This digit was placed on this col, so remove its "columns" list
+          $self->{col}[$i][$d] = undef;
 
-      # update candidates list with shortened new list
-      $self->{candidates}[$i][$j] = \@new_candidates;
+          # Also, remove this digit from all other candidates on the col
+          for (my $j = 0; $j < 9; $j ++) {
+            if (defined $self->{candidates}[$j][$i]) {
+              my @new_candidates = grep { $_ != $digit } @{$self->{candidates}[$j][$i]};
+              if (scalar @new_candidates == 0) { $self->{is_solvable} = 0 }
+              $self->{candidates}[$j][$i] = \@new_candidates;
+            }
+          }
+        } else {
+          # On all other cols, the digit cannot be on this row.
+          for (my $j = 0; $j < 9; $j ++) {
+            if (defined $self->{col}[$j][$d]) {
+              my @new_cells = grep { $_ != $row } @{$self->{col}[$j][$d]};
+              #if (scalar @new_cells == 0) { $self->{is_solvable} = 0 }
+              $self->{col}[$j][$d] = \@new_cells;
+            }
+
+            # Also, iterate through box/cell that matches and prune that item.
+            my $box = $_box[$row][$j];
+            if (defined $self->{box}[$box][$d]) {
+              my $box_cell = $_box_cell[$row][$j];
+              my @new_cells = grep { $_ != $box_cell } @{$self->{box}[$box][$d]};
+              #if (scalar @new_cells == 0) { $self->{is_solvable} = 0 }
+              $self->{box}[$box][$d] = \@new_cells;
+            }
+          }
+        }
+
+#BOX
+        if ($box == $i) {
+          # This digit was placed on this box, so remove its "boxes" list
+          $self->{box}[$i][$d] = undef;
+
+          # Also, remove this digit from all other candidates in the box
+          for (my $j = 0; $j < 9; $j ++) {
+            # convert box, box_cell to row, col
+            my $box_row = $_box_row[$i][$j];
+            my $box_col = $_box_col[$i][$j];
+            if (defined $self->{candidates}[$box_row][$box_col]) {
+              my @new_candidates = grep { $_ != $digit } @{$self->{candidates}[$box_row][$box_col]};
+              if (scalar @new_candidates == 0) { $self->{is_solvable} = 0 }
+              $self->{candidates}[$box_row][$box_col] = \@new_candidates;
+            }
+          }
+        } else {
+          # On all other rows and columns, remove the box-shaped hole.
+          for (my $j = 0; $j < 9; $j ++) {
+            my $box_row = $_box_row[$box][$j];
+            next if ($box_row == $row);
+
+            my $box_col = $_box_col[$box][$j];
+            next if ($box_col == $col);
+
+            if (defined $self->{row}[$box_row][$d]) {
+              my @new_cells = grep { $_ != $box_col } @{$self->{row}[$box_row][$d]};
+              #if (scalar @new_cells == 0) { $self->{is_solvable} = 0 }
+              $self->{row}[$box_row][$d] = \@new_cells;
+            }
+
+            if (defined $self->{col}[$box_col][$d]) {
+              my @new_cells = grep { $_ != $box_row } @{$self->{col}[$box_col][$d]};
+              #if (scalar @new_cells == 0) { $self->{is_solvable} = 0 }
+              $self->{col}[$box_col][$d] = \@new_cells;
+            }
+          }
+        }
+      }
+    } else {
+      # On this row, col, and box: no other number can take this spot.
+      if (defined $self->{row}[$row][$d]) {
+        my @new_cells = grep { $_ != $col } @{$self->{row}[$row][$d]};
+        #if (scalar @new_cells == 0) { $self->{is_solvable} = 0 }
+        $self->{row}[$row][$d] = \@new_cells;
+      }
+
+      if (defined $self->{col}[$col][$d]) {
+        my @new_cells = grep { $_ != $row } @{$self->{col}[$col][$d]};
+        #if (scalar @new_cells == 0) { $self->{is_solvable} = 0 }
+        $self->{col}[$col][$d] = \@new_cells;
+      }
+
+      if (defined $self->{box}[$box][$d]) {
+        my @new_cells = grep { $_ != $box_cell } @{$self->{box}[$box][$d]};
+        #if (scalar @new_cells == 0) { $self->{is_solvable} = 0 }
+        $self->{box}[$box][$d] = \@new_cells;
+      }
     }
   }
 }
@@ -313,6 +468,30 @@ sub get_cell
 
   # Retrieve cell info
   return ($self->{puzzle}[$row][$col], $self->{candidates}[$row][$col]);
+}
+
+sub get_candidates
+{
+  # Retrieve cell info
+  return $_[0]->{candidates}[$_[1]][$_[2]];
+}
+
+sub get_row
+{
+  # Retrieve row info
+  return $_[0]->{row}[$_[1]][$_[2] - 1];
+}
+
+sub get_col
+{
+  # Retrieve col info
+  return $_[0]->{col}[$_[1]][$_[2] - 1];
+}
+
+sub get_box
+{
+  # Retrieve box info
+  return $_[0]->{box}[$_[1]][$_[2] - 1];
 }
 
 sub get_string

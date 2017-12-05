@@ -127,6 +127,15 @@ sub forced {
 ##############################################################################
 ### SOLUTION
 #   This is a "noisy" version of solve() from solve.pl
+# Lookup Table
+my @box2cell;
+
+for my $i (0 .. 8) {
+  for my $j (0 .. 8) {
+    $box2cell[$i][$j] = [ 3 * int($i / 3) + int($j / 3),
+                          3 * ($i % 3) + $j % 3 ]
+  }
+}
 
 sub p {
   return sprintf('%c%c', ord('A') + $_[0], ord('1') + $_[1]);
@@ -136,6 +145,9 @@ sub rec_solve {
   my $puzzle = shift;
 
   print FP "Alice " . pick('began ','resumed ','continued ','started ') . "looking for squares to fill on her puzzle. ";
+
+  # retrieve the reference to the puzzle-grid
+  my $grid = $puzzle->get;
 
   my $time_since_last_pause = 0;
   SCAN: while (! $puzzle->is_solved && $puzzle->is_solvable) {
@@ -225,8 +237,10 @@ sub rec_solve {
     for (my $row = 0; $row < 9; $row ++) {
       for (my $col = 0; $col < 9; $col ++) {
         # Get cell details, and advance to next cell if this one is already filled.
-        my ($digit, $candidates) = $puzzle->get_cell($row, $col);
-        next if (defined $digit);
+        next if (defined $grid->[$row][$col]);
+
+        # No digit here, so there should be candidates available.
+        my $candidates = $puzzle->get_candidates($row, $col);
 
         # A singular candidate is a forced move and can be filled ASAP.
         if (scalar @$candidates == 1) {
@@ -251,83 +265,52 @@ sub rec_solve {
     # Place-finding digit by digit
     for (my $digit = 1; $digit < 10; $digit ++) {
       ROW: for (my $row = 0; $row < 9; $row ++) {
-        my @cols;
-
         # search for digit on the row
-        for (my $col = 0; $col < 9; $col ++) {
-          my ($o_digit, $o_candidates) = $puzzle->get_cell($row, $col);
-
-          # Digit already exists on this row
-          next ROW if (defined $o_digit && $o_digit == $digit);
-
-          # See if digit is in candidates list.
-          if (scalar(grep { $_ == $digit } @$o_candidates)) {
-            push @cols, $col;
-          }
-        }
+        my $cols = $puzzle->get_row($row, $digit);
+        next ROW if (!defined $cols);
 
         # Placement search for this digit returned only one position.
-        if (scalar @cols == 1) {
-          print FP forced("row " . chr(ord('A') + $row), $row, $cols[0], $digit);
-          $puzzle->set_cell($row, $cols[0], $digit);
+        if (scalar @$cols == 1) {
+          print FP forced("row " . chr(ord('A') + $row), $row, $cols->[0], $digit);
+          $puzzle->set_cell($row, $cols->[0], $digit);
           next SCAN;
         }
-        if (!@best_move_list || scalar @best_move_list > scalar @cols) {
-          @best_move_list = map { [ $row, $_, $digit ] } @cols;
+
+        if (!@best_move_list || scalar @best_move_list > scalar @$cols) {
+          @best_move_list = map { [ $row, $_, $digit ] } @$cols;
         }
       }
 
       COL: for (my $col = 0; $col < 9; $col ++) {
-        my @rows;
-
         # search for digit on the column
-        for (my $row = 0; $row < 9; $row ++) {
-          my ($o_digit, $o_candidates) = $puzzle->get_cell($row, $col);
-
-          # Digit already exists on this column
-          next COL if (defined $o_digit && $o_digit == $digit);
-
-          # See if digit is in candidates list.
-          if (scalar(grep { $_ == $digit } @$o_candidates)) {
-            push @rows, $row;
-          }
-        }
+        my $rows = $puzzle->get_col($col, $digit);
+        next COL if (!defined $rows);
 
         # Placement search for this digit returned only one position.
-        if (scalar @rows == 1) {
-          print FP forced("column " . chr(ord('1') + $col), $rows[0], $col, $digit);
-          $puzzle->set_cell($rows[0], $col, $digit);
+        if (scalar @$rows == 1) {
+          print FP forced("column " . chr(ord('1') + $col), $rows->[0], $col, $digit);
+          $puzzle->set_cell($rows->[0], $col, $digit);
           next SCAN;
         }
-        if (!@best_move_list || scalar @best_move_list > scalar @rows) {
-          @best_move_list = map { [ $_, $col, $digit ] } @rows;
+        if (!@best_move_list || scalar @best_move_list > scalar @$rows) {
+          @best_move_list = map { [ $_, $col, $digit ] } @$rows;
         }
       }
 
       BOX: for (my $box = 0; $box < 9; $box ++) {
-        my @pos;
+        # search for digit within the box
+        my $cells = $puzzle->get_box($box, $digit);
+        next BOX if (!defined $cells);
 
-        # search for digit in the box
-        for (my $row = 3 * int($box / 3); $row < 3 * (1 + int($box / 3)); $row ++) {
-          for (my $col = 3 * ($box % 3); $col < 3 * (1 + ($box % 3)); $col ++) {
-            my ($o_digit, $o_candidates) = $puzzle->get_cell($row, $col);
-
-            # Digit already exists on this column
-            next BOX if (defined $o_digit && $o_digit == $digit);
-
-            # See if digit is in candidates list.
-            if (scalar(grep { $_ == $digit } @$o_candidates)) {
-              push @pos, [$row, $col];
-            }
-          }
-        }
-        if (scalar @pos == 1) {
-          print FP forced("box " . chr(ord('1') + $box), $pos[0][0], $pos[0][1], $digit);
-          $puzzle->set_cell($pos[0][0], $pos[0][1], $digit);
+        # Placement search for this digit returned only one position.
+        if (scalar @$cells == 1) {
+          my @pos = @{$box2cell[$box][$cells->[0]]};
+          print FP forced("box " . chr(ord('1') + $box), $pos[0], $pos[1], $digit);
+          $puzzle->set_cell( @pos, $digit);
           next SCAN;
         }
-        if (!@best_move_list || scalar @best_move_list > scalar @pos) {
-          @best_move_list = map { [ $_->[0], $_->[1], $digit ] } @pos;
+        if (!@best_move_list || scalar @best_move_list > scalar @$cells) {
+          @best_move_list = map { [ @{$box2cell[$box][$_]}, $digit ] } @$cells;
         }
       }
     }

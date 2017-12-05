@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use v5.010;
 
-use Time::HiRes qw(time);
+use Time::HiRes qw(clock);
 
 use SudokuPuzzle;
 
@@ -15,8 +15,21 @@ sub p {
 }
 
 ### SOLUTION
+
+# Lookup Table
+#  Convert a (box, box_cell) to a [row, column].
+my @box2cell;
+
+for my $i (0 .. 8) {
+  for my $j (0 .. 8) {
+    $box2cell[$i][$j] = [ 3 * int($i / 3) + int($j / 3),
+                          3 * ($i % 3) + $j % 3 ]
+  }
+}
+
 # "Solves" the provided puzzle.  (This alters the original!)
-# Returns 1 on success, or 0 if the puzzle is unsolvable.
+# Returns the puzzle.  You should check is_solved to see the result:
+#  it will be 1 on success, or 0 if the puzzle is unsolvable.
 # If 0, the puzzle state is left where no more obvious moves
 #  can be made.
 # Does NOT check for "multiple solutions"
@@ -24,19 +37,24 @@ sub rec_solve
 {
   my $puzzle = shift;
 
+  # retrieve the reference to the puzzle-grid
+  my $grid = $puzzle->get;
+
   SCAN: while (! $puzzle->is_solved && $puzzle->is_solvable)
   {
-    if (DEBUG) { $puzzle->print; }
+    #if (DEBUG) { $puzzle->pp }
 
     # Running "best" list of moves.
     my @best_move_list;
 
-    # Candidate-checking first
+    # Candidate-checking first (looking for "naked singles")
     for (my $row = 0; $row < 9; $row ++) {
       for (my $col = 0; $col < 9; $col ++) {
         # Get cell details, and advance to next cell if this one is already filled.
-        my ($digit, $candidates) = $puzzle->get_cell($row, $col);
-        next if (defined $digit);
+        next if (defined $grid->[$row][$col]);
+
+        # No digit here, so there should be candidates available.
+        my $candidates = $puzzle->get_candidates($row, $col);
 
         # A singular candidate is a forced move and can be filled ASAP.
         if (scalar @$candidates == 1) {
@@ -52,86 +70,54 @@ sub rec_solve
       }
     }
 
-    # Place-finding digit by digit
+    # Place-finding digit by digit (looking for "hidden singles")
     for (my $digit = 1; $digit < 10; $digit ++) {
       ROW: for (my $row = 0; $row < 9; $row ++) {
-        my @cols;
-
         # search for digit on the row
-        for (my $col = 0; $col < 9; $col ++) {
-          my ($o_digit, $o_candidates) = $puzzle->get_cell($row, $col);
-
-          # Digit already exists on this row
-          next ROW if (defined $o_digit && $o_digit == $digit);
-
-          # See if digit is in candidates list.
-          if (scalar(grep { $_ == $digit } @$o_candidates)) {
-            push @cols, $col;
-          }
-        }
+        my $cols = $puzzle->get_row($row, $digit);
+        next ROW if (!defined $cols);
 
         # Placement search for this digit returned only one position.
-        if (scalar @cols == 1) {
-          if (DEBUG) { say "PR: Forced: " . p($row, $cols[0]) . " MUST be a $digit." }
-          $puzzle->set_cell($row, $cols[0], $digit);
+        if (scalar @$cols == 1) {
+          if (DEBUG) { say "PR: Forced: " . p($row, $cols->[0]) . " MUST be a $digit." }
+          $puzzle->set_cell($row, $cols->[0], $digit);
           next SCAN;
         }
-        if (!@best_move_list || scalar @best_move_list > scalar @cols) {
-          @best_move_list = map { [ $row, $_, $digit ] } @cols;
+
+        if (!@best_move_list || scalar @best_move_list > scalar @$cols) {
+          @best_move_list = map { [ $row, $_, $digit ] } @$cols;
         }
       }
 
       COL: for (my $col = 0; $col < 9; $col ++) {
-        my @rows;
-
         # search for digit on the column
-        for (my $row = 0; $row < 9; $row ++) {
-          my ($o_digit, $o_candidates) = $puzzle->get_cell($row, $col);
-
-          # Digit already exists on this column
-          next COL if (defined $o_digit && $o_digit == $digit);
-
-          # See if digit is in candidates list.
-          if (scalar(grep { $_ == $digit } @$o_candidates)) {
-            push @rows, $row;
-          }
-        }
+        my $rows = $puzzle->get_col($col, $digit);
+        next COL if (!defined $rows);
 
         # Placement search for this digit returned only one position.
-        if (scalar @rows == 1) {
-          if (DEBUG) { say "PC: Forced: " . p($rows[0], $col) . " MUST be a $digit." }
-          $puzzle->set_cell($rows[0], $col, $digit);
+        if (scalar @$rows == 1) {
+          if (DEBUG) { say "PC: Forced: " . p($rows->[0], $col) . " MUST be a $digit." }
+          $puzzle->set_cell($rows->[0], $col, $digit);
           next SCAN;
         }
-        if (!@best_move_list || scalar @best_move_list > scalar @rows) {
-          @best_move_list = map { [ $_, $col, $digit ] } @rows;
+        if (!@best_move_list || scalar @best_move_list > scalar @$rows) {
+          @best_move_list = map { [ $_, $col, $digit ] } @$rows;
         }
       }
 
       BOX: for (my $box = 0; $box < 9; $box ++) {
-        my @pos;
+        # search for digit within the box
+        my $cells = $puzzle->get_box($box, $digit);
+        next BOX if (!defined $cells);
 
-        # search for digit in the box
-        for (my $row = 3 * int($box / 3); $row < 3 * (1 + int($box / 3)); $row ++) {
-          for (my $col = 3 * ($box % 3); $col < 3 * (1 + ($box % 3)); $col ++) {
-            my ($o_digit, $o_candidates) = $puzzle->get_cell($row, $col);
-
-            # Digit already exists on this column
-            next BOX if (defined $o_digit && $o_digit == $digit);
-
-            # See if digit is in candidates list.
-            if (scalar(grep { $_ == $digit } @$o_candidates)) {
-              push @pos, [$row, $col];
-            }
-          }
-        }
-        if (scalar @pos == 1) {
-          if (DEBUG) { say "PB: Forced: " . p($pos[0][0], $pos[0][1]) . " MUST be a $digit." }
-          $puzzle->set_cell($pos[0][0], $pos[0][1], $digit);
+        # Placement search for this digit returned only one position.
+        if (scalar @$cells == 1) {
+          if (DEBUG) { say "PB: Forced: " . p( @{$box2cell[$box][$cells->[0]]} ) . " MUST be a $digit." }
+          $puzzle->set_cell( @{$box2cell[$box][$cells->[0]]}, $digit);
           next SCAN;
         }
-        if (!@best_move_list || scalar @best_move_list > scalar @pos) {
-          @best_move_list = map { [ $_->[0], $_->[1], $digit ] } @pos;
+        if (!@best_move_list || scalar @best_move_list > scalar @$cells) {
+          @best_move_list = map { [ @{$box2cell[$box][$_]}, $digit ] } @$cells;
         }
       }
     }
@@ -161,10 +147,11 @@ sub rec_solve
     $puzzle->{is_solvable} = 0;
   }
 
-  # did not arrive at a solution
+  # Regardless, we have no moves left.  Return result.
   return $puzzle;
 }
 
+## Convenience function to call rec_solve on a copy of the input puzzle.
 sub solve
 {
   my $puzzle = shift;
@@ -182,9 +169,9 @@ say "Input:";
 $puzzle->pp;
 
 # Attempt to solve puzzle.
-my $start = time;
+my $start = clock;
 my $result = solve($puzzle);
-my $end = time;
+my $end = clock;
 
 # Print result and exit.
 if ($result->is_solved) {
