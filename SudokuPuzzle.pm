@@ -464,15 +464,13 @@ sub is_solved
 
 sub get_cell
 {
-  my ($self, $row, $col) = @_;
-
   # Retrieve cell info
-  return ($self->{puzzle}[$row][$col], $self->{candidates}[$row][$col]);
+  return $_[0]->{puzzle}[$_[1]][$_[2]];
 }
 
 sub get_candidates
 {
-  # Retrieve cell info
+  # Retrieve candidate info for a cell
   return $_[0]->{candidates}[$_[1]][$_[2]];
 }
 

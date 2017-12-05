@@ -29,7 +29,7 @@ while ($puzzle->is_solvable && ! $puzzle->is_solved)
   $col = ord($col) - ord('1');
 
   # retrieve data for this cell
-  my ($cur_value, $candidates) = $puzzle->get_cell($row, $col);
+  my $cur_value = $puzzle->get_cell($row, $col);
   if (defined $cur_value)
   {
     say "That cell is already filled with '$cur_value'.";
@@ -37,6 +37,7 @@ while ($puzzle->is_solvable && ! $puzzle->is_solved)
   }
 
   # digit
+  my $candidates = $puzzle->get_candidates($row, $col);
   print "Digit (" . join(',', @$candidates) . ")? "; my $digit = <STDIN>;
   if ($digit !~ m/^[1-9]$/) {
     say "Invalid digit.";
