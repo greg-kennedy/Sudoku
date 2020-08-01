@@ -3,6 +3,9 @@ use strict;
 use warnings;
 use v5.010;
 
+use FindBin;
+use lib "$FindBin::Bin";
+
 use SudokuPuzzle;
 use GD;
 

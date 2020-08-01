@@ -5,6 +5,9 @@ use v5.010;
 
 use Time::HiRes qw(clock);
 
+use FindBin;
+use lib "$FindBin::Bin";
+
 use SudokuPuzzle;
 
 use constant DEBUG => 0;

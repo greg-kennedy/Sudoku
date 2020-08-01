@@ -3,6 +3,9 @@ use strict;
 use warnings;
 use v5.010;
 
+use FindBin;
+use lib "$FindBin::Bin";
+
 use SudokuPuzzle;
 
 die "Specify a puzzle string on command line" unless scalar @ARGV == 1;
